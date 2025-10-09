@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mtgtag"
+version = "1.0.0"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+description = "Magic: The Gathering Card Functional Tagging System"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Games/Entertainment",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "pandas>=1.5.0",
+    "torch>=2.0.0",
+    "transformers>=4.20.0",
+    "scikit-learn>=1.3.0",
+    "numpy>=1.21.0",
+    "tqdm>=4.64.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/mtgtag"
+"Bug Reports" = "https://github.com/yourusername/mtgtag/issues"
+
+[project.scripts]
+mtgtag-diagnose = "mtgtag.pipeline.diagnose:main"
+mtgtag-clean = "mtgtag.pipeline.clean:main"
+mtgtag-domain-adapt = "mtgtag.pipeline.domain_adapt:main"
+mtgtag-train = "mtgtag.pipeline.train:main"
+mtgtag-optimize = "mtgtag.pipeline.optimize:main"
+mtgtag-classify = "mtgtag.pipeline.classify:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
