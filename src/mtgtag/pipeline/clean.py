@@ -8,14 +8,8 @@ import logging
 from ..utils.logging import setup_logging
 from ..utils.data import load_card_database, parse_tags_column, save_processed_data
 
-# Default tag correction mappings
-DEFAULT_TAG_CORRECTIONS = {
-    "Top-Deck Manipulation": "Scry / Surveil / Top-Deck Manipulation",
-    "Double Strike": "First Strike / Double Strike",
-    "First Strike": "First Strike / Double Strike",
-    "Forced Combat": "Forced Combat / Goad",
-    "CardDraw": "Card Draw"  # Fix typo
-}
+# Default tag correction mappings (empty - starting fresh)
+DEFAULT_TAG_CORRECTIONS = {}
 
 def clean_and_remap_tags(
     tags_str: str,
@@ -42,7 +36,6 @@ def clean_and_remap_tags(
 def clean_tags_dataset(
     input_path: Path,
     output_path: Path,
-    tags_column: str = "card_tags",
     tag_corrections: Dict[str, str] = None
 ) -> None:
     """
@@ -51,10 +44,10 @@ def clean_tags_dataset(
     Args:
         input_path: Path to input CSV file
         output_path: Path to output cleaned CSV file
-        tags_column: Name of column containing tags
         tag_corrections: Dictionary mapping incorrect to correct tags
     """
     logger = logging.getLogger(__name__)
+    tags_column = "tags"  # Hardcoded column name
 
     if tag_corrections is None:
         tag_corrections = DEFAULT_TAG_CORRECTIONS
@@ -98,11 +91,6 @@ def main():
         help="Path to output cleaned CSV file"
     )
     parser.add_argument(
-        "--tags-column",
-        default="card_tags",
-        help="Name of column containing tags"
-    )
-    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -124,8 +112,7 @@ def main():
     try:
         clean_tags_dataset(
             args.input_file,
-            args.output_file,
-            args.tags_column
+            args.output_file
         )
         return 0
     except Exception as e:

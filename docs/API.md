@@ -6,20 +6,21 @@
 Validates tag consistency between labeled data and tag definitions.
 
 ```bash
-mtgtag-diagnose <labeled_data> [OPTIONS]
+mtgtag-diagnose [OPTIONS]
 ```
 
-**Arguments:**
-- `labeled_data`: Path to labeled subset CSV file
-
 **Options:**
-- `--tag-definitions`: Path to tag definitions JSON (default: data/tag_definitions.json)
-- `--tags-column`: Column name containing tags (default: card_tags)
+- `--input`: Path to labeled subset CSV file (default: data/mtg_ml_sample.csv)
+- `--tag-definitions`: Path to tag definitions JSON (default: data/most_important_tags.json)
 - `--log-level`: Logging level (DEBUG|INFO|WARNING|ERROR)
+
+**Notes:**
+- Tags column is hardcoded to `tags`
+- Checks for undefined tags, tag distribution, and data quality
 
 **Example:**
 ```bash
-mtgtag-diagnose data/labeled_subset.csv --log-level DEBUG
+mtgtag-diagnose --input data/mtg_ml_sample.csv
 ```
 
 ---
@@ -36,18 +37,22 @@ mtgtag-clean <input_file> <output_file> [OPTIONS]
 - `output_file`: Path for cleaned output CSV
 
 **Options:**
-- `--tags-column`: Column name containing tags (default: card_tags)
 - `--log-level`: Logging level
+
+**Notes:**
+- Tags column is hardcoded to `tags`
+- Applies tag corrections defined in config (currently empty by default)
+- Validates against tag definitions in `data/most_important_tags.json`
 
 **Example:**
 ```bash
-mtgtag-clean data/raw_labels.csv data/clean_labels.csv
+mtgtag-clean data/mtg_ml_sample.csv data/mtg_ml_sample_clean.csv
 ```
 
 ---
 
 ### `mtgtag-domain-adapt`
-Fine-tunes transformer model for MTG domain.
+Fine-tunes transformer model for MTG domain using Masked Language Modeling (MLM).
 
 ```bash
 mtgtag-domain-adapt [OPTIONS]
@@ -56,46 +61,81 @@ mtgtag-domain-adapt [OPTIONS]
 **Options:**
 - `--base-model`: Base transformer model (default: distilbert-base-uncased)
 - `--output-dir`: Output directory for adapted model (default: models/domain_adapted)
-- `--epochs`: Number of training epochs
-- `--batch-size`: Training batch size
-- `--learning-rate`: Learning rate
+- `--data-path`: Path to full card database (default: data/mtg_cards_database.csv)
+- `--epochs`: Number of training epochs (default: 3)
+- `--batch-size`: Training batch size (default: 16)
+- `--learning-rate`: Learning rate (default: 5e-5)
+
+**Notes:**
+- Trains on full 33,424 card database (no labels needed)
+- Uses position-based text format: `{mana_cost} | {cmc} | {type_line} | {oracle_text} | {power}/{toughness}`
+- Excludes card names and keywords to prevent memorization
+- Takes ~2 hours on GPU for 3 epochs
 
 **Example:**
 ```bash
-mtgtag-domain-adapt --epochs 5 --batch-size 32
+mtgtag-domain-adapt --epochs 3 --batch-size 16
 ```
 
 ---
 
 ### `mtgtag-train`
-Trains multi-label classifier on clean data.
+Trains multi-label classifier on clean labeled data.
 
 ```bash
 mtgtag-train [OPTIONS]
 ```
 
 **Options:**
-- `--model-path`: Path to domain-adapted model
-- `--data-path`: Path to clean labeled data
-- `--output-dir`: Output directory for trained classifier
-- `--epochs`: Training epochs
-- `--batch-size`: Batch size
-- `--learning-rate`: Learning rate
+- `--model-path`: Path to domain-adapted model (default: models/domain_adapted)
+- `--data-path`: Path to clean labeled data (default: data/mtg_ml_sample_clean.csv)
+- `--output-dir`: Output directory for trained classifier (default: models/classifier)
+- `--epochs`: Training epochs (default: 10, **15 recommended**)
+- `--batch-size`: Batch size (default: 16)
+- `--learning-rate`: Learning rate (default: 2e-5)
+
+**Notes:**
+- Trains on 5,000 labeled cards with 83 tags
+- Uses same position-based text format as domain adaptation
+- Saves model using HuggingFace `save_pretrained()` format
+- Takes ~35 minutes for 15 epochs on GPU
+- Achieves F1 ~0.84 before threshold optimization
+
+**Example:**
+```bash
+mtgtag-train --epochs 15 --batch-size 16
+```
 
 ---
 
 ### `mtgtag-optimize`
-Optimizes classification thresholds for balanced metrics.
+Optimizes classification thresholds for balanced metrics (per-label).
 
 ```bash
-mtgtag-optimize [OPTIONS]
+mtgtag-optimize <data_path> [OPTIONS]
 ```
 
+**Arguments:**
+- `data_path`: Path to validation data CSV
+
 **Options:**
-- `--model-path`: Path to trained classifier
-- `--data-path`: Path to validation data
-- `--metric`: Optimization metric (f1|precision|recall)
-- `--output-file`: Path to save optimized thresholds
+- `--model-path`: Path to trained classifier (default: models/classifier)
+- `--metric`: Optimization metric (default: f1)
+- `--min-threshold`: Minimum threshold to search (default: 0.1)
+- `--max-threshold`: Maximum threshold to search (default: 0.9)
+- `--steps`: Number of threshold steps to try (default: 50)
+- `--output-file`: Path to save optimized thresholds (default: models/classifier/optimal_thresholds.json)
+
+**Notes:**
+- Searches for optimal threshold per tag (83 thresholds total)
+- Improves F1 from ~0.84 to ~0.91 (+8.5%)
+- Average optimal threshold: ~0.391 (varies per tag)
+- Takes ~40 seconds on GPU
+
+**Example:**
+```bash
+mtgtag-optimize data/mtg_ml_sample_clean.csv --metric f1
+```
 
 ---
 
@@ -103,43 +143,59 @@ mtgtag-optimize [OPTIONS]
 Applies trained models to classify cards in bulk.
 
 ```bash
-mtgtag-classify [OPTIONS]
+mtgtag-classify <input_path> [OPTIONS]
 ```
 
+**Arguments:**
+- `input_path`: Input card database CSV path
+
 **Options:**
-- `--input`: Input card database CSV
-- `--output`: Output classified CSV
-- `--model-path`: Path to trained classifier
-- `--thresholds`: Path to optimized thresholds JSON
-- `--batch-size`: Inference batch size
+- `--output`: Output classified CSV (default: data/mtg_cards_classified.csv)
+- `--model-path`: Path to trained classifier (default: models/classifier)
+- `--thresholds`: Path to optimized thresholds JSON (default: models/classifier/optimal_thresholds.json)
+- `--batch-size`: Inference batch size (default: 16)
+
+**Notes:**
+- Classifies all cards with 83 functional tags
+- Uses optimized thresholds if available
+- Output includes predicted tags as comma-separated string
+- Processes ~8-10 cards/second on GPU
+
+**Example:**
+```bash
+mtgtag-classify data/mtg_cards_database.csv --output data/mtg_cards_classified.csv
+```
 
 ## Python API
 
 ### Core Classes
 
-#### `MTGMultiLabelClassifier`
+#### Loading Trained Models
 
-Multi-label classifier for MTG functional tags.
+Load trained classifiers using HuggingFace's AutoModel:
 
 ```python
-from mtgtag.models.classifier import MTGMultiLabelClassifier
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import torch
 
-# Initialize classifier
-classifier = MTGMultiLabelClassifier(
-    model_name_or_path="models/domain_adapted",
-    num_labels=72,
-    dropout_rate=0.1
-)
+# Load model and tokenizer
+model = AutoModelForSequenceClassification.from_pretrained("models/classifier")
+tokenizer = AutoTokenizer.from_pretrained("models/classifier")
+
+# Move to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
 
 # Get predictions
-probabilities = classifier.predict_probabilities(input_ids, attention_mask)
-predictions = classifier.predict_with_threshold(input_ids, attention_mask, thresholds)
+inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
+inputs = {k: v.to(device) for k, v in inputs.items()}
+
+with torch.no_grad():
+    outputs = model(**inputs)
+    probabilities = torch.sigmoid(outputs.logits)
 ```
 
-**Methods:**
-- `forward(input_ids, attention_mask, labels=None)`: Forward pass
-- `predict_probabilities(input_ids, attention_mask)`: Get probability scores
-- `predict_with_threshold(input_ids, attention_mask, thresholds, default_threshold)`: Apply custom thresholds
+**Note:** Models are saved using HuggingFace's `save_pretrained()` format, not custom PyTorch state dicts.
 
 ### Utility Functions
 
@@ -150,28 +206,30 @@ from mtgtag.utils.data import (
     load_tag_definitions,
     load_card_database,
     parse_tags_column,
-    validate_card_data,
-    save_processed_data,
     get_tag_statistics
 )
 
-# Load tag definitions
-tags = load_tag_definitions("data/tag_definitions.json")
+# Load tag definitions (supports list-of-dicts format)
+tags = load_tag_definitions("data/most_important_tags.json")
+# Returns: {"removal": "Cards that can remove...", "ramp": "...", ...}
 
 # Load card database
-df = load_card_database("data/full_card_database.csv")
+df = load_card_database("data/mtg_cards_database.csv")
 
 # Parse tags from string
-tags_list = parse_tags_column("['Card Draw', 'Cantrip']")
-
-# Validate required columns
-validate_card_data(df, required_columns=['name', 'card_text', 'tags'])
-
-# Save processed data
-save_processed_data(df, "output/processed.csv")
+tags_list = parse_tags_column("removal,ramp,card-advantage")
+# Returns: ["removal", "ramp", "card-advantage"]
 
 # Get tag statistics
 stats = get_tag_statistics(df, tags_column='tags')
+```
+
+**Note:** Tag definitions in `most_important_tags.json` use format:
+```json
+[
+  {"tag": "removal", "definition": "Cards that can remove..."},
+  {"tag": "ramp", "definition": "Cards that produce extra mana..."}
+]
 ```
 
 #### Logging Utilities (`mtgtag.utils.logging`)
@@ -201,9 +259,9 @@ from mtgtag.pipeline.diagnose import diagnose_tags
 
 # Diagnose tag consistency
 success = diagnose_tags(
-    labeled_data_path=Path("data/labeled_subset.csv"),
-    tag_definitions_path=Path("data/tag_definitions.json"),
-    tags_column="card_tags"
+    labeled_data_path=Path("data/mtg_ml_sample.csv"),
+    tag_definitions_path=Path("data/most_important_tags.json"),
+    tags_column="tags"  # Hardcoded throughout pipeline
 )
 ```
 
@@ -214,10 +272,10 @@ from mtgtag.pipeline.clean import clean_tags_dataset
 
 # Clean tags in dataset
 clean_tags_dataset(
-    input_path=Path("data/raw_labels.csv"),
-    output_path=Path("data/clean_labels.csv"),
-    tags_column="card_tags",
-    tag_corrections={"BadTag": "GoodTag"}
+    input_path=Path("data/mtg_ml_sample.csv"),
+    output_path=Path("data/mtg_ml_sample_clean.csv"),
+    tags_column="tags",  # Hardcoded throughout pipeline
+    tag_corrections={}  # Empty by default
 )
 ```
 
@@ -278,8 +336,22 @@ Model predictions include probabilities and binary classifications:
 
 ### Card Database Schema
 Expected columns in card database:
-- `name`: Card name (string)
+- `id`: Unique card identifier (string)
+- `name`: Card name (string) - **excluded from model input**
 - `mana_cost`: Mana cost (string, e.g., "{2}{U}")
-- `card_text`: Rules text (string)
-- `type_line`: Card type (string)
-- `tags`: Functional tags (list of strings, optional for input)
+- `cmc`: Converted mana cost (integer/float)
+- `type_line`: Card type (string, e.g., "Instant")
+- `oracle_text`: Rules text (string)
+- `colors`: Card colors (string/list)
+- `color_identity`: Color identity (string/list)
+- `keywords`: Card keywords (string/list) - **excluded from model input**
+- `power`: Creature power (string/float, nullable)
+- `toughness`: Creature toughness (string/float, nullable)
+- `loyalty`: Planeswalker loyalty (string/int, nullable)
+- `tags`: Functional tags (comma-separated string or list, required for training)
+
+**Model Input Format (position-based):**
+```
+{mana_cost} | {cmc} | {type_line} | {oracle_text} | {power}/{toughness}
+```
+Example: `{2}{U} | 3.0 | Instant | Draw two cards. | `

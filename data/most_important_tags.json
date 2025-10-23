@@ -1,0 +1,334 @@
+[
+  {
+    "tag": "removal",
+    "definition": "Cards that can remove permanents or threats from the battlefield"
+  },
+  {
+    "tag": "creature-removal",
+    "definition": "Cards that can destroy, exile, or otherwise remove creatures from the battlefield"
+  },
+  {
+    "tag": "removal-creature",
+    "definition": "Cards that remove creatures specifically (alternative naming for creature-removal)"
+  },
+  {
+    "tag": "card-advantage",
+    "definition": "Cards that generate more resources or cards than they cost, putting you ahead of opponents"
+  },
+  {
+    "tag": "draw",
+    "definition": "Cards that allow you to draw additional cards from your library"
+  },
+  {
+    "tag": "draw-card",
+    "definition": "Cards with draw card effects (alternative naming for draw)"
+  },
+  {
+    "tag": "pure-draw",
+    "definition": "Cards that draw cards without additional conditions or restrictions"
+  },
+  {
+    "tag": "ramp",
+    "definition": "Cards that accelerate your mana production, allowing you to cast bigger spells earlier"
+  },
+  {
+    "tag": "mana-ramp",
+    "definition": "Cards that provide mana acceleration (alternative naming for ramp)"
+  },
+  {
+    "tag": "acceleration",
+    "definition": "Cards that speed up your game plan through mana or resource acceleration"
+  },
+  {
+    "tag": "evasion",
+    "definition": "Abilities that help creatures deal combat damage by being difficult to block (flying, menace, unblockable, etc.)"
+  },
+  {
+    "tag": "burn",
+    "definition": "Cards that deal direct damage to creatures, planeswalkers, or players"
+  },
+  {
+    "tag": "spot-removal",
+    "definition": "Removal spells that target a single permanent, offering flexible answers"
+  },
+  {
+    "tag": "recursion",
+    "definition": "Cards that return cards from the graveyard to hand, battlefield, or library"
+  },
+  {
+    "tag": "tutor",
+    "definition": "Cards that search your library for specific cards, improving deck consistency"
+  },
+  {
+    "tag": "hate",
+    "definition": "Cards designed to counter specific strategies, card types, or meta decks"
+  },
+  {
+    "tag": "lifegain",
+    "definition": "Cards that increase your life total"
+  },
+  {
+    "tag": "life-gain",
+    "definition": "Cards that gain life (alternative naming for lifegain)"
+  },
+  {
+    "tag": "removal-burn",
+    "definition": "Removal spells that use damage to destroy permanents"
+  },
+  {
+    "tag": "burn-creature",
+    "definition": "Burn spells that can target and kill creatures"
+  },
+  {
+    "tag": "removal-creature-burn",
+    "definition": "Burn-based removal specifically for creatures"
+  },
+  {
+    "tag": "planeswalker-removal",
+    "definition": "Cards that can remove planeswalkers from the battlefield"
+  },
+  {
+    "tag": "removal-planeswalker",
+    "definition": "Removal targeting planeswalkers (alternative naming)"
+  },
+  {
+    "tag": "removal-destroy",
+    "definition": "Removal spells that specifically use the 'destroy' mechanic"
+  },
+  {
+    "tag": "artifact-removal",
+    "definition": "Cards that can destroy or exile artifacts"
+  },
+  {
+    "tag": "removal-artifact",
+    "definition": "Removal targeting artifacts (alternative naming)"
+  },
+  {
+    "tag": "enchantment-removal",
+    "definition": "Cards that can destroy or exile enchantments"
+  },
+  {
+    "tag": "removal-enchantment",
+    "definition": "Removal targeting enchantments (alternative naming)"
+  },
+  {
+    "tag": "burn-player",
+    "definition": "Burn spells that can target players directly to reduce their life total"
+  },
+  {
+    "tag": "burn-planeswalker",
+    "definition": "Burn spells that can damage planeswalkers"
+  },
+  {
+    "tag": "removal-planeswalker-burn",
+    "definition": "Burn-based removal specifically for planeswalkers"
+  },
+  {
+    "tag": "kindred",
+    "definition": "Cards that care about or benefit specific creature types (modern term for tribal)"
+  },
+  {
+    "tag": "tribal",
+    "definition": "Cards that synergize with specific creature types (older term, now called kindred)"
+  },
+  {
+    "tag": "typal",
+    "definition": "Cards with creature type synergies (alternative term for tribal/kindred)"
+  },
+  {
+    "tag": "typal-creature",
+    "definition": "Creatures that benefit from or care about creature types"
+  },
+  {
+    "tag": "noncreature-tribal",
+    "definition": "Non-creature spells that support tribal/kindred strategies"
+  },
+  {
+    "tag": "noncreature-typal",
+    "definition": "Non-creature cards with creature type synergies"
+  },
+  {
+    "tag": "sac-outlet",
+    "definition": "Cards that allow you to sacrifice permanents for value or as a cost"
+  },
+  {
+    "tag": "sacrifice-outlet",
+    "definition": "Sacrifice outlets (alternative naming for sac-outlet)"
+  },
+  {
+    "tag": "repeatable-removal",
+    "definition": "Removal effects that can be activated or triggered multiple times"
+  },
+  {
+    "tag": "repeatable-draw",
+    "definition": "Card draw effects that can be used multiple times per game"
+  },
+  {
+    "tag": "repeatable-token-generator",
+    "definition": "Cards that can create tokens multiple times"
+  },
+  {
+    "tag": "repeatable-creature-tokens",
+    "definition": "Effects that generate creature tokens repeatedly"
+  },
+  {
+    "tag": "repeatable-crime",
+    "definition": "Cards that can repeatedly commit crimes (Outlaws of Thunder Junction mechanic: targeting opponents or their permanents)"
+  },
+  {
+    "tag": "attack-trigger",
+    "definition": "Abilities that trigger when the creature or other creatures attack"
+  },
+  {
+    "tag": "leaves-battlefield-trigger",
+    "definition": "Abilities that trigger when a permanent leaves the battlefield"
+  },
+  {
+    "tag": "cast-trigger",
+    "definition": "Abilities that trigger when spells are cast"
+  },
+  {
+    "tag": "death-trigger",
+    "definition": "Abilities that trigger when creatures die"
+  },
+  {
+    "tag": "deathtrigger",
+    "definition": "Death triggers (alternative naming)"
+  },
+  {
+    "tag": "cast-trigger-you",
+    "definition": "Abilities that trigger specifically when you cast spells"
+  },
+  {
+    "tag": "delayed-triggered-ability",
+    "definition": "Triggered abilities that happen at a later time, not immediately"
+  },
+  {
+    "tag": "gains-pp-counters",
+    "definition": "Cards that gain +1/+1 counters on themselves"
+  },
+  {
+    "tag": "gives-1-1-counters",
+    "definition": "Cards that put +1/+1 counters on other permanents"
+  },
+  {
+    "tag": "gives-pp-counters",
+    "definition": "Cards that distribute +1/+1 counters to other creatures"
+  },
+  {
+    "tag": "counters-matter",
+    "definition": "Cards that care about or synergize with +1/+1 counters"
+  },
+  {
+    "tag": "reanimate",
+    "definition": "Cards that return creatures from graveyard directly to the battlefield"
+  },
+  {
+    "tag": "resurrect",
+    "definition": "Reanimation effects (alternative naming)"
+  },
+  {
+    "tag": "zombify",
+    "definition": "Reanimation effects (named after the classic spell Zombify)"
+  },
+  {
+    "tag": "mill",
+    "definition": "Cards that put cards from library into graveyard (self-mill or opponent mill)"
+  },
+  {
+    "tag": "mana-dump",
+    "definition": "Cards that provide useful ways to spend excess mana in the late game"
+  },
+  {
+    "tag": "mana-sink",
+    "definition": "Activated abilities or effects that can use large amounts of mana profitably"
+  },
+  {
+    "tag": "tutor-to",
+    "definition": "Tutors that search for cards and put them in a specific zone (hand, battlefield, top of library, etc.)"
+  },
+  {
+    "tag": "discard-outlet",
+    "definition": "Cards that allow you to discard cards for value or as a cost"
+  },
+  {
+    "tag": "discardoutlet",
+    "definition": "Discard outlets (alternative naming)"
+  },
+  {
+    "tag": "hand-neutral",
+    "definition": "Cards that replace themselves or maintain hand size (typically cantrips)"
+  },
+  {
+    "tag": "library-manipulation",
+    "definition": "Cards that look at, rearrange, or manipulate the top of your library"
+  },
+  {
+    "tag": "synergy-attacker-self",
+    "definition": "Cards that synergize with attacking and benefit themselves when attacking"
+  },
+  {
+    "tag": "synergy-attacker",
+    "definition": "Cards that reward you for attacking or benefit attackers"
+  },
+  {
+    "tag": "power-matters",
+    "definition": "Cards that care about creature power (high power, power equal to X, etc.)"
+  },
+  {
+    "tag": "gives-evasion",
+    "definition": "Cards that grant evasion abilities to other creatures"
+  },
+  {
+    "tag": "power-boost-to-all",
+    "definition": "Cards that increase the power of multiple creatures simultaneously"
+  },
+  {
+    "tag": "type-change",
+    "definition": "Cards that change the type of permanents (creature types, card types, etc.)"
+  },
+  {
+    "tag": "blue-effect",
+    "definition": "Effects traditionally associated with blue's color pie (counterspells, bounce, card draw, etc.)"
+  },
+  {
+    "tag": "exile-self",
+    "definition": "Cards that exile themselves as part of their effect"
+  },
+  {
+    "tag": "exiles-self",
+    "definition": "Self-exiling cards (alternative naming)"
+  },
+  {
+    "tag": "sacrifice-self",
+    "definition": "Cards that sacrifice themselves as a cost or effect"
+  },
+  {
+    "tag": "synergy-artifact",
+    "definition": "Cards that synergize with or benefit from artifacts"
+  },
+  {
+    "tag": "multiple-targets",
+    "definition": "Spells or abilities that can target multiple permanents or players"
+  },
+  {
+    "tag": "single-target-instant-sorcery",
+    "definition": "Instant or sorcery spells that target a single permanent or player"
+  },
+  {
+    "tag": "single-target-spell",
+    "definition": "Spells that target only one thing"
+  },
+  {
+    "tag": "activated-ability",
+    "definition": "Cards with activated abilities (abilities with a cost that can be activated)"
+  },
+  {
+    "tag": "drawback",
+    "definition": "Cards with negative effects or downsides that balance their power"
+  },
+  {
+    "tag": "own-at-cost",
+    "definition": "Cards with significant drawbacks or costs that must be managed or mitigated"
+  }
+]

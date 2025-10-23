@@ -11,8 +11,7 @@ from ..config import TAG_DEFINITIONS_PATH
 
 def diagnose_tags(
     labeled_data_path: Path,
-    tag_definitions_path: Path = TAG_DEFINITIONS_PATH,
-    tags_column: str = "card_tags"
+    tag_definitions_path: Path = TAG_DEFINITIONS_PATH
 ) -> bool:
     """
     Diagnose tag consistency between labeled data and tag definitions.
@@ -20,12 +19,12 @@ def diagnose_tags(
     Args:
         labeled_data_path: Path to labeled subset CSV file
         tag_definitions_path: Path to tag definitions JSON file
-        tags_column: Name of column containing tags in labeled data
 
     Returns:
         True if all tags are valid, False otherwise
     """
     logger = logging.getLogger(__name__)
+    tags_column = "tags"  # Hardcoded column name
 
     # Load data
     logger.info("Loading datasets...")
@@ -87,11 +86,6 @@ def main():
         help="Path to tag definitions JSON file"
     )
     parser.add_argument(
-        "--tags-column",
-        default="card_tags",
-        help="Name of column containing tags in labeled data"
-    )
-    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -116,8 +110,7 @@ def main():
     # Run diagnosis
     success = diagnose_tags(
         args.labeled_data,
-        args.tag_definitions,
-        args.tags_column
+        args.tag_definitions
     )
 
     return 0 if success else 1

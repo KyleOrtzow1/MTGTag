@@ -10,9 +10,8 @@ MODELS_DIR = PROJECT_ROOT / "models"
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 # Data file paths
-TAG_DEFINITIONS_PATH = DATA_DIR / "tag_definitions.json"
-FULL_CARD_DATABASE_PATH = DATA_DIR / "full_card_database.csv"
-FUNCTIONAL_TAGS_PATH = DATA_DIR / "functional_tags.json"
+TAG_DEFINITIONS_PATH = DATA_DIR / "most_important_tags.json"
+CARD_DATABASE_PATH = DATA_DIR / "mtg_ml_sample.csv"
 
 # Model paths
 DOMAIN_ADAPTED_MODEL_PATH = MODELS_DIR / "domain_adapted"
@@ -20,6 +19,7 @@ CLASSIFIER_MODEL_PATH = MODELS_DIR / "classifier"
 
 # Training configuration
 DEFAULT_CONFIG = {
+    "num_labels": 83,  # Number of functional tags
     "domain_adaptation": {
         "base_model": "distilbert-base-uncased",
         "epochs": 3,

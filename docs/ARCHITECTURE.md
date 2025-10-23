@@ -32,14 +32,10 @@ Main package containing all source code:
 - **`pipeline/`**: Individual pipeline steps as importable modules
   - `diagnose.py`: Tag validation and consistency checking
   - `clean.py`: Data cleaning and tag correction
-  - `domain_adapt.py`: Transformer fine-tuning for MTG domain
+  - `domain_adapt.py`: Transformer fine-tuning for MTG domain (MLM)
   - `train.py`: Multi-label classifier training
   - `optimize.py`: Threshold optimization for balanced metrics
   - `classify.py`: Bulk inference pipeline
-
-- **`models/`**: Model classes and ML utilities
-  - `classifier.py`: Custom multi-label classifier wrapper
-  - Model loading, saving, and inference utilities
 
 - **`utils/`**: Shared utility modules
   - `data.py`: Data loading, validation, and processing
@@ -49,6 +45,7 @@ Main package containing all source code:
 - **`config.py`**: Centralized configuration management
   - File paths, model parameters, training hyperparameters
   - Environment-specific settings
+  - Tag definitions path, database paths
 
 ## Data Flow
 
@@ -77,9 +74,10 @@ Main package containing all source code:
 
 ### Multi-Label Classifier
 - **Architecture**: Transformer encoder + linear classification head
-- **Output**: 72-dimensional probability vector (one per tag)
+- **Output**: 83-dimensional probability vector (one per tag)
 - **Loss Function**: Binary cross-entropy (multi-label setting)
-- **Post-processing**: Per-label optimized thresholds
+- **Post-processing**: Per-label optimized thresholds (avg ~0.391)
+- **Training**: 15 epochs recommended for optimal performance
 
 ## Configuration Management
 
@@ -119,16 +117,18 @@ Each pipeline step is exposed as a command-line tool:
 The architecture supports easy extension:
 
 1. **New Pipeline Steps**: Add modules to `pipeline/` directory
-2. **Custom Models**: Implement new model classes in `models/`
-3. **Additional Utilities**: Extend `utils/` with new helper functions
-4. **Configuration**: Add new parameters to `config.py`
+2. **Additional Utilities**: Extend `utils/` with new helper functions
+3. **Configuration**: Add new parameters to `config.py`
+4. **New Tags**: Update `data/most_important_tags.json` and retrain
 
 ## Performance Considerations
 
 - **Memory Management**: Batch processing for large datasets
-- **GPU Utilization**: Automatic device detection and usage
-- **Caching**: Model and data caching where appropriate
-- **Scalability**: Designed for processing 25,000+ cards efficiently
+- **GPU Utilization**: Automatic device detection and usage (CUDA support)
+- **Model Format**: HuggingFace `save_pretrained()` for efficient loading
+- **Scalability**: Designed for processing 33,424+ cards efficiently
+- **Inference Speed**: ~8-10 cards/second on GPU batch processing
+- **Training Time**: ~35 minutes for 15 epochs (GPU), ~6-8 hours (CPU)
 
 ## Quality Assurance
 

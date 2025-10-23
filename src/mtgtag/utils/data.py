@@ -23,17 +23,28 @@ def load_tag_definitions(tag_definitions_path: Path) -> Dict[str, str]:
         with open(tag_definitions_path, 'r') as f:
             tag_data = json.load(f)
 
-        if not isinstance(tag_data, dict):
-            raise ValueError(f"Expected dictionary in {tag_definitions_path}, got {type(tag_data)}")
+        # Handle list-of-dicts format: [{"tag": "name", "definition": "desc"}, ...]
+        if isinstance(tag_data, list):
+            tag_dict = {item["tag"]: item["definition"] for item in tag_data}
+            logger.info(f"Loaded {len(tag_dict)} tag definitions from list format")
+            return tag_dict
 
-        logger.info(f"Loaded {len(tag_data)} tag definitions")
-        return tag_data
+        # Handle legacy dict format: {"tag_name": "description"}
+        elif isinstance(tag_data, dict):
+            logger.info(f"Loaded {len(tag_data)} tag definitions from dict format")
+            return tag_data
+
+        else:
+            raise ValueError(f"Expected list or dict in {tag_definitions_path}, got {type(tag_data)}")
 
     except FileNotFoundError:
         logger.error(f"Tag definitions file not found: {tag_definitions_path}")
         raise
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in tag definitions file: {e}")
+        raise
+    except KeyError as e:
+        logger.error(f"Missing required key in tag definition: {e}")
         raise
 
 def load_card_database(database_path: Path) -> pd.DataFrame:

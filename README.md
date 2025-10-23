@@ -5,7 +5,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)](https://pytorch.org/)
 [![Transformers](https://img.shields.io/badge/🤗%20Transformers-yellow)](https://huggingface.co/transformers/)
 
-A production-ready machine learning pipeline for automatically classifying Magic: The Gathering cards into 72 functional categories like "Card Draw", "Removal", "Ramp", and more.
+A production-ready machine learning pipeline for automatically classifying Magic: The Gathering cards into 83 functional categories like "Card Draw", "Removal", "Ramp", and more.
 
 ## 🎯 Overview
 
@@ -30,25 +30,27 @@ MTGTag is a standalone ML system extracted from the DeckAgent project, featuring
 MTGTag/
 ├── src/mtgtag/                 # Main package source code
 │   ├── pipeline/               # Pipeline modules (diagnose, clean, train, etc.)
-│   ├── models/                 # Model classes and utilities
 │   ├── utils/                  # Shared utilities (logging, data handling)
 │   └── config.py              # Configuration management
-├── models/                     # Pre-trained model artifacts
-│   ├── domain_adapted/         # Fine-tuned transformer (~500MB)
-│   └── classifier/             # Multi-label classifier (~500MB)
+├── models/                     # Trained model artifacts
+│   ├── domain_adapted/         # Domain-adapted transformer (~500MB)
+│   └── classifier/             # Multi-label classifier with optimal thresholds (~500MB)
 ├── data/                       # Data files
-│   ├── full_card_database.csv  # Complete MTG card dataset
-│   ├── tag_definitions.json    # 72 functional tag definitions
-│   └── functional_tags.json    # Reference functional tags
-├── scripts/                    # Original pipeline scripts + utilities
+│   ├── mtg_cards_database.csv  # Complete MTG card dataset (33,424 cards)
+│   ├── most_important_tags.json # 83 functional tag definitions
+│   └── mtg_ml_sample.csv       # Training sample (5,000 labeled cards)
 ├── docs/                       # Documentation
 ├── setup.py & pyproject.toml   # Package configuration
-└── requirements.txt            # Dependencies
+└── README.md                   # This file
 ```
 
 ## 🚀 Installation
 
-### Option 1: Package Installation (Recommended)
+### Prerequisites
+
+**Python Version**: Python 3.11 is recommended for GPU support. Python 3.13 does not yet have CUDA-enabled PyTorch builds available.
+
+### Option 1: CPU-Only Installation (Simple)
 
 ```bash
 # Clone the repository
@@ -59,14 +61,37 @@ cd mtgtag
 pip install -e .
 ```
 
-### Option 2: Direct Installation
+### Option 2: GPU Installation (Recommended for Training)
+
+For GPU acceleration (10x faster training), you must install PyTorch with CUDA support before installing MTGTag:
 
 ```bash
-# Install package with dependencies
-pip install .
+# Clone the repository
+git clone https://github.com/yourusername/mtgtag.git
+cd mtgtag
 
-# Optional: GPU support for faster training
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Create virtual environment with Python 3.11
+python3.11 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install PyTorch with CUDA 12.1 support (MUST be done first)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Then install MTGTag
+pip install -e .
+```
+
+**GPU Requirements:**
+- NVIDIA GPU with CUDA support
+- CUDA 12.1 or compatible version
+- 8GB+ GPU memory recommended
+
+**Check GPU availability:**
+```bash
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
 ```
 
 ### Verify Installation
@@ -79,24 +104,33 @@ mtgtag-diagnose --help
 
 ### Complete Training Pipeline
 
-```bash
-# Run the full pipeline with convenience script
-python scripts/run_pipeline.py --labeled-data data/labeled_subset.csv
+Run the 6-step pipeline to train a new model from scratch:
 
-# Or run individual steps:
-mtgtag-diagnose data/labeled_subset.csv           # 1. Validate tags
-mtgtag-clean input.csv output_clean.csv           # 2. Clean data
-mtgtag-domain-adapt                               # 3. Domain adaptation
-mtgtag-train                                      # 4. Train classifier
-mtgtag-optimize                                   # 5. Optimize thresholds
-mtgtag-classify                                   # 6. Bulk classification
+```bash
+# 1. Diagnose tag distribution and quality
+mtgtag-diagnose --input data/mtg_ml_sample.csv
+
+# 2. Clean and validate tags (optional if data is already clean)
+mtgtag-clean data/mtg_ml_sample.csv data/mtg_ml_sample_clean.csv
+
+# 3. Domain adaptation on full card database (adapts transformer to MTG text)
+mtgtag-domain-adapt
+
+# 4. Train multi-label classifier (15 epochs recommended)
+mtgtag-train
+
+# 5. Optimize classification thresholds (improves F1 by ~8%)
+mtgtag-optimize data/mtg_ml_sample_clean.csv
+
+# 6. Classify all cards using trained model
+mtgtag-classify data/mtg_cards_database.csv --output data/mtg_cards_classified.csv
 ```
 
 ### Quick Start (Pre-trained Models)
 
 ```bash
 # Use existing models for immediate classification
-mtgtag-classify --input data/full_card_database.csv --output classified_cards.csv
+mtgtag-classify data/mtg_cards_database.csv --output data/mtg_cards_classified.csv
 ```
 
 ### Python API Usage
@@ -114,65 +148,83 @@ print(classified_df.head())
 ## 📊 Data & Models
 
 ### Included Assets
-- **Tag Definitions** (`data/tag_definitions.json`): 72 functional categories with descriptions
-- **Card Database** (`data/full_card_database.csv`): ~25,000 MTG cards with metadata
-- **Pre-trained Models** (`models/`): Domain-adapted transformer + trained classifier
-- **Reference Tags** (`data/functional_tags.json`): Additional tag information
+- **Tag Definitions** (`data/most_important_tags.json`): 83 functional categories with descriptions
+- **Card Database** (`data/mtg_cards_database.csv`): 33,424 MTG cards with complete metadata
+- **Training Sample** (`data/mtg_ml_sample.csv`): 5,000 labeled cards for model training
+- **Trained Models** (`models/`): Domain-adapted transformer + multi-label classifier
 
-### Training Data (Optional)
-- **Labeled Subset** (`labeled_subset.csv`): Manually tagged cards for training (user-provided)
-- **Threshold Config** (`optimal_thresholds.json`): Auto-generated optimization results
+### Data Structure
+Cards include the following fields:
+- **Identifiers**: `id`, `name`
+- **Mana Information**: `mana_cost`, `cmc` (converted mana cost)
+- **Card Properties**: `type_line`, `oracle_text`, `colors`, `color_identity`, `keywords`
+- **Combat Stats**: `power`, `toughness`, `loyalty`
+- **Labels**: `tags` (multi-label functional classifications)
+
+### Model Artifacts
+- **Domain-Adapted Model** (`models/domain_adapted/`): DistilBERT fine-tuned on MTG card text
+- **Classifier Model** (`models/classifier/`): Multi-label classifier with optimal thresholds
+- **Threshold Config** (`models/classifier/optimal_thresholds.json`): Per-label optimized thresholds
 
 ## Functional Tags
 
-The system classifies cards into 72 functional categories:
+The system classifies cards into **83 functional categories** covering:
 
-**Resources**: Card Draw, Ramp, Mana Dorks, Tutors, Land Ramp
-**Combat**: Evasion, Pump Effects, Token Generation, Combat Tricks
-**Removal**: Single-target Removal, Board Wipes, Counterspells
-**Protection**: Hexproof/Shroud, Indestructible, Protection
-**Synergy**: Tribal Support, Spellslinger, Aristocrats, Blink
-**Strategy**: Stax Effects, Combo Pieces, Win Conditions
+**Resources**: Card Draw, Ramp, Mana Dorks, Tutors, Card Advantage
+**Combat**: Evasion, Pump Effects, Token Generation, Attack Triggers
+**Removal**: Burn, Creature Removal, Artifact/Enchantment Removal, Board Wipes
+**Protection**: Hexproof/Shroud, Indestructible, Protection from Colors
+**Creature Types**: Dragons, Elves, Goblins, Merfolk, Vampires, Zombies, and more
+**Color Effects**: Red/Blue/Green/White/Black specific mechanics
+**Strategy**: Reanimate, Sacrifice, Lifegain, Mill, ETB/LTB triggers
 
-See `data/tag_definitions.json` for complete definitions and descriptions.
+See `data/most_important_tags.json` for complete definitions and descriptions of all 83 tags.
 
 ## 📤 Output Format
 
-The pipeline produces `classified_card_database.csv` with:
-- **Original card data**: Name, mana cost, text, type, etc.
-- **Predicted tags**: Multi-label functional classifications
+The pipeline produces `mtg_cards_classified.csv` with:
+- **Original card data**: `id`, `name`, `mana_cost`, `cmc`, `type_line`, `oracle_text`, etc.
+- **Predicted tags**: Multi-label functional classifications (comma-separated)
 - **Confidence scores**: Per-tag probability scores
-- **Metadata**: Model version, processing timestamp
 
 **Sample Output:**
 ```csv
-name,mana_cost,card_text,predicted_tags,confidence_scores
-"Lightning Bolt","{R}","Deal 3 damage...","['Single-target Removal', 'Burn']","[0.95, 0.87]"
-"Rampant Growth","{1G}","Search your library...","['Land Ramp', 'Card Advantage']","[0.92, 0.78]"
+id,name,mana_cost,type_line,oracle_text,predicted_tags
+"uuid-123","Lightning Bolt","{R}","Instant","Lightning Bolt deals 3...","burn,burn-creature,burn-player,removal"
+"uuid-456","Rampant Growth","{1}{G}","Sorcery","Search your library...","ramp,card-advantage,green-effect"
 ```
 
 ## ⚙️ System Requirements
 
-- **Python**: 3.8 or higher
-- **Memory**: 8GB+ RAM (models are ~1GB total)
+- **Python**: 3.11 recommended (3.13 lacks CUDA support), 3.8+ minimum
+- **Memory**: 8GB+ RAM recommended (16GB for training)
+- **GPU Memory**: 8GB+ VRAM for training (NVIDIA GPU with CUDA support)
 - **Storage**: ~2GB for models and data
-- **GPU**: Optional but recommended for training (10x speedup)
-- **Dependencies**: PyTorch, Transformers, scikit-learn, pandas
+- **GPU**: Optional for inference, **strongly recommended for training** (10x speedup)
+- **Dependencies**: PyTorch, Transformers, scikit-learn, pandas, accelerate, datasets
 
 ### Performance Benchmarks
-- **Training Time**: ~2-4 hours (GPU) vs ~20-30 hours (CPU)
-- **Inference Speed**: ~1000 cards/minute (batch processing)
-- **Model Accuracy**: F1 score of 0.85+ on validation set
+- **Training Time**: ~35 minutes (15 epochs on GPU) vs ~6-8 hours (CPU)
+- **Domain Adaptation**: ~2 hours on 33,424 cards (GPU)
+- **Inference Speed**: ~8-10 cards/second (batch processing with GPU)
+- **Model Accuracy**: F1 score of 0.9145 with optimized thresholds
 
 ## 📈 Model Performance
 
 | Metric | Score |
 |--------|-------|
-| **Overall F1** | 0.87 |
-| **Precision** | 0.89 |
-| **Recall** | 0.85 |
-| **Coverage** | 30,000+ cards |
-| **Tag Categories** | 72 functional types |
+| **Overall F1** | **0.9145** (with optimized thresholds) |
+| **Base F1** | 0.8428 (before threshold optimization) |
+| **Training Set** | 5,000 labeled cards |
+| **Full Dataset** | 33,424 MTG cards |
+| **Tag Categories** | 83 functional types |
+| **Training Epochs** | 15 (optimal) |
+| **Avg Optimal Threshold** | 0.391 (varies per tag) |
+
+### Performance by Category
+- **Best performing tags** (F1 > 0.99): `activated-ability`, `burn-planeswalker`, `burn-creature`
+- **Strong performance** (F1 > 0.95): `burn`, `attack-trigger`, `acceleration`
+- **Minimum performance**: F1 > 0.85 across all 83 tags
 
 ## 🤝 Contributing
 
