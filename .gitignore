@@ -85,3 +85,9 @@ Thumbs.db
 classified_*.csv
 labeled_subset_clean.csv
 optimal_thresholds.json
+
+# Large data files (>100MB, exceeds GitHub limit)
+data/mtg_cards_database.csv
+data/mtg_cards_classified.csv
+data/mtg_ml_sample.csv
+data/mtg_ml_sample_clean.csv
